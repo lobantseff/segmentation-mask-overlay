@@ -12,10 +12,10 @@ from .utils import open_with_PIL
 
 def overlay_masks(
     image: Union[os.PathLike, PILImage.Image, np.ndarray],
-    boolean_masks: List[np.ndarray],
+    boolean_masks: Union[np.ndarray, List[np.ndarray]],
     labels: Optional[List[str]] = None,
     colors: np.ndarray = None,
-    figsize: Optional[Tuple[int, int]] = None,
+    figsize: Tuple[int, int] = (8, 8),
     dpi: int = 90,
     mask_alpha: float = 0.4,
     mpl_colormap: str = "tab20",
@@ -27,12 +27,14 @@ def overlay_masks(
         Image path or PIl.Image or numpy array. If image size inconsistent with
         the masks size, image will be resized.
     boolean_masks : List[np.ndarray[bool]]
-        List of segmentation masks. All masks should be the same size, equal to size of the image.
+        List of segmentation masks or numpy array of shape (height, width, n_classes).
+        All masks should be the same size, equal to size of the image.
     labels : Optional[List[str]], optional
         Optional label names. Provide in the same order as the corresponding masks.
         If not provided, will be set as range(len(boolean_masks)), by default None
     colors : np.ndarray
-        Array of shape (n_labels x 4). Example to get persistent colormap: `plt.cm.tab20(np.arange(NUM_LABELS))`
+        Array of shape (n_labels x 4).
+        Example to get persistent colormap: `plt.cm.tab20(np.arange(NUM_LABELS))`
     figsize : tuple, optional
         Size in inches of the output image, by default (12, 12)
     dpi : int, optional
@@ -45,17 +47,25 @@ def overlay_masks(
         Output figure with masks legend.
     """
 
+    if isinstance(boolean_masks, np.ndarray):
+        assert (boolean_masks.ndim == 3 and boolean_masks.dtype == bool), (
+            "boolean_masks should be a list boolean numpy"
+            + " arrays or 3-dim numpy array with the last dim"
+            + " as a channel to store masks of different classes"
+        )
+        boolean_masks = [boolean_masks[:, :, i] for i in range(boolean_masks.shape[-1])]
+
     if labels is not None:
-        assert len(labels) == len(
-            boolean_masks
-        ), "Number of provided labels != number of masks"
+        assert len(labels) == len(boolean_masks), (
+            "Number of provided labels != number of masks"
+        )
     else:
         labels = [f"mask_{_}" for _ in range(len(boolean_masks))]
 
     if colors is not None:
-        assert len(colors) == len(
-            boolean_masks
-        ), "Number of provided colors != number of masks"
+        assert len(colors) == len(boolean_masks), (
+            "Number of provided colors != number of masks"
+        )
 
     image = open_with_PIL(image)
     image_size = tuple(np.array(image.size)[::-1])
