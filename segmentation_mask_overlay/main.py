@@ -117,7 +117,7 @@ def overlay_masks(
     fig = plt.figure(figsize=figsize, dpi=dpi)
     plt.imshow(image)
     plt.axis("off")
-    plt.legend(
+    mask_legend = plt.legend(
         handles=legend_elements,
         loc="upper left",
         frameon=False,
@@ -125,5 +125,6 @@ def overlay_masks(
     )
     plt.subplots_adjust(left=0.8)
     plt.tight_layout()
+    plt.gca().add_artist(mask_legend)
 
     return fig

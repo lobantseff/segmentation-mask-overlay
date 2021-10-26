@@ -4,7 +4,7 @@ from PIL import Image
 from segmentation_mask_overlay import overlay_masks
 
 
-image = Image.open("./cat.jpg").convert("L")
+image = Image.open("./segmentation_mask_overlay/examples/cat.jpg").convert("L")
 image = np.array(image)
 
 # Mimic masks
@@ -18,4 +18,10 @@ mask_labels = [f"Mask_{i}" for i in range(len(masks))]
 cmap = plt.cm.tab20(np.arange(len(mask_labels)))
 
 fig = overlay_masks(image, masks, labels=mask_labels, colors=cmap, mask_alpha=0.5)
-fig.savefig("./cat_masked.jpg", bbox_inches="tight", dpi=300)
+
+# You can plot anything over the provided image
+ax, = fig.get_axes()
+ax.plot([0, 100], [0, 100], label="line")
+ax.legend(loc=2)
+
+fig.savefig("./segmentation_mask_overlay/examples/cat_masked.jpg", bbox_inches="tight", dpi=300)
