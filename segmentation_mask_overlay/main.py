@@ -3,6 +3,7 @@ from typing import Optional, Tuple, Union, List
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import colors as C
 from matplotlib.patches import Patch
 from PIL import Image as PILImage
 
@@ -14,7 +15,7 @@ def overlay_masks(
     image: Union[os.PathLike, PILImage.Image, np.ndarray],
     boolean_masks: Union[np.ndarray, List[np.ndarray]],
     labels: Optional[List[str]] = None,
-    colors: np.ndarray = None,
+    colors: Optional[Union[np.ndarray, List[str]]] = None,
     figsize: Tuple[int, int] = (8, 8),
     dpi: int = 90,
     mask_alpha: float = 0.4,
@@ -32,8 +33,8 @@ def overlay_masks(
     labels : Optional[List[str]], optional
         Optional label names. Provide in the same order as the corresponding masks.
         If not provided, will be set as range(len(boolean_masks)), by default None
-    colors : np.ndarray
-        Array of shape (n_labels x 4).
+    colors : Union[np.ndarray, List[str]]
+        Array of shape (n_labels x 4) or list of matplotlib acceptable colornames.
         Example to get persistent colormap: `plt.cm.tab20(np.arange(NUM_LABELS))`
     figsize : tuple, optional
         Size in inches of the output image, by default (12, 12)
@@ -62,11 +63,6 @@ def overlay_masks(
     else:
         labels = [f"mask_{_}" for _ in range(len(boolean_masks))]
 
-    if colors is not None:
-        assert len(colors) == len(boolean_masks), (
-            "Number of provided colors != number of masks"
-        )
-
     image = open_with_PIL(image)
     image_size = tuple(np.array(image.size)[::-1])
 
@@ -83,6 +79,12 @@ def overlay_masks(
         )
 
     else:
+        assert len(colors) == len(boolean_masks), (
+            "Number of provided colors != number of masks"
+        )
+        if all(isinstance(c, str) for c in colors):
+            colors = np.array([C.to_rgba(c) for c in colors])
+
         mask_colors = colors.copy()
         mask_colors[:, -1] *= mask_alpha
         mask_colors = (mask_colors * 255).astype("uint8")
