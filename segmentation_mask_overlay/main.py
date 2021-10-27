@@ -1,4 +1,5 @@
 import os
+from collections.abc import Iterable
 from typing import Optional, Tuple, Union, List
 
 import numpy as np
@@ -15,7 +16,7 @@ def overlay_masks(
     image: Union[os.PathLike, PILImage.Image, np.ndarray],
     boolean_masks: Union[np.ndarray, List[np.ndarray]],
     labels: Optional[List[str]] = None,
-    colors: Optional[Union[np.ndarray, List[str]]] = None,
+    colors: Optional[Union[np.ndarray, List[Union[str, List[float]]]]] = None,
     figsize: Tuple[int, int] = (8, 8),
     dpi: int = 90,
     mask_alpha: float = 0.4,
@@ -33,7 +34,7 @@ def overlay_masks(
     labels : Optional[List[str]], optional
         Optional label names. Provide in the same order as the corresponding masks.
         If not provided, will be set as range(len(boolean_masks)), by default None
-    colors : Union[np.ndarray, List[str]]
+    colors : Union[np.ndarray, List[Union[str, List[float]]]], optional
         Array of shape (n_labels x 4) or list of matplotlib acceptable colornames.
         Example to get persistent colormap: `plt.cm.tab20(np.arange(NUM_LABELS))`
     figsize : tuple, optional
@@ -83,7 +84,16 @@ def overlay_masks(
             "Number of provided colors != number of masks"
         )
         if all(isinstance(c, str) for c in colors):
-            colors = np.array([C.to_rgba(c) for c in colors])
+            colors = [C.to_rgba(c) for c in colors]
+
+        if isinstance(colors, Iterable):
+            colors = np.array(colors)
+
+        assert colors.ndim == 2 and colors.shape[-1] == 4, (
+            "Unsupported color format:"
+            + " should be list of matplotlib colorname strings,"
+            + " list of RGBA arrays or 2-dim numpy array of shape (n_labels x 4)"
+        )
 
         mask_colors = colors.copy()
         mask_colors[:, -1] *= mask_alpha

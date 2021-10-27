@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="segmentation-mask-overlay",
-    version="0.3.1",
+    version="0.3.2",
     description="Plotting the segmentation masks has never been so exciting!",
     long_description=README,
     long_description_content_type="text/markdown",
