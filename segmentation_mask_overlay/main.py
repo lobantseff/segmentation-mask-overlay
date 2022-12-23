@@ -22,7 +22,7 @@ def overlay_masks(
     mask_alpha: float = 0.4,
     mpl_colormap: str = "tab20",
     return_pil_image: bool = False,
-) -> plt.Figure | PILImage:
+):
     """Overlays masks on the image.
     Parameters
     ----------
