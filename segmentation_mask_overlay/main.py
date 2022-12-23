@@ -21,7 +21,8 @@ def overlay_masks(
     dpi: int = 90,
     mask_alpha: float = 0.4,
     mpl_colormap: str = "tab20",
-) -> plt.Figure:
+    return_pil_image: bool = False,
+) -> plt.Figure | PILImage:
     """Overlays masks on the image.
     Parameters
     ----------
@@ -43,10 +44,15 @@ def overlay_masks(
         Resolution of the output image. Note: 'px, py = w * dpi, h * dpi', by default 120
     mask_alpha : float, optional
         Masks opaque value, by default 0.4
+    mpl_colormap : str
+        Matplotlib colormap name
+    return_pil_image : bool
+        If True, will return PIL image instead of matpotlib figure.
+
     Returns
     -------
-    plt.Figure
-        Output figure with masks legend.
+    plt.Figure | PIL.Image
+        Output mpl figure or pillow image with masks.
     """
 
     if isinstance(boolean_masks, np.ndarray):
@@ -62,10 +68,10 @@ def overlay_masks(
             "Number of provided labels != number of masks"
         )
     else:
-        labels = [f"mask_{_}" for _ in range(len(boolean_masks))]
+        labels = [f"{_:02d}" for _ in range(len(boolean_masks))]
 
-    image = open_with_PIL(image)
-    image_size = tuple(np.array(image.size)[::-1])
+    pil_image = open_with_PIL(image)
+    image_size = tuple(np.array(pil_image.size)[::-1])
 
     assert all(
         mask.shape == image_size for mask in boolean_masks
@@ -91,7 +97,7 @@ def overlay_masks(
 
         assert colors.ndim == 2 and colors.shape[-1] == 4, (
             "Unsupported color format:"
-            + " should be list of matplotlib colorname strings,"
+            + " should be list of matplotlib colorname strings for each mask/mask_channel,"
             + " list of RGBA arrays or 2-dim numpy array of shape (n_labels x 4)"
         )
 
@@ -122,19 +128,23 @@ def overlay_masks(
         legend_elements.append(Patch(color=legend_color, label=label))
 
     segmentation_overlay = PILImage.fromarray(segmentation_overlay.astype("uint8"))
-    image.paste(segmentation_overlay, mask=segmentation_overlay)
+    pil_image.paste(segmentation_overlay, mask=segmentation_overlay)
 
-    fig = plt.figure(figsize=figsize, dpi=dpi)
-    plt.imshow(image)
-    plt.axis("off")
-    mask_legend = plt.legend(
-        handles=legend_elements,
-        loc="upper left",
-        frameon=False,
-        bbox_to_anchor=(1.01, 1),
-    )
-    plt.subplots_adjust(left=0.8)
-    plt.tight_layout()
-    plt.gca().add_artist(mask_legend)
+    if return_pil_image:
+        return pil_image
+    
+    else:
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+        plt.imshow(pil_image)
+        plt.axis("off")
+        mask_legend = plt.legend(
+            handles=legend_elements,
+            loc="upper left",
+            frameon=False,
+            bbox_to_anchor=(1.01, 1),
+        )
+        plt.subplots_adjust(left=0.8)
+        plt.tight_layout()
+        plt.gca().add_artist(mask_legend)
 
-    return fig
+        return fig
