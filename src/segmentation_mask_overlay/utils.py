@@ -35,7 +35,7 @@ def get_img_from_fig(fig, dpi=180, color_cvt_flag=cv2.COLOR_BGR2RGB) -> np.ndarr
 
 
 def array_to_uintimage(array: np.ndarray, cvt_flag=cv2.COLOR_BGR2RGB) -> np.ndarray:
-    """Converts any array to uint8 data type format using a magic of the matplotlib.
+    """Converts any array to uint8 data type format using a magic of matplotlib.
     Parameters
     ----------
     array : np.ndarray
@@ -51,12 +51,17 @@ def array_to_uintimage(array: np.ndarray, cvt_flag=cv2.COLOR_BGR2RGB) -> np.ndar
 
     w, h = array.shape
     dpi = 90
+    isinteractive = plt.isinteractive()
+    if isinteractive:
+        plt.ioff()
     fig = plt.figure(figsize=(h / dpi, w / dpi))
     plt.imshow(array, cmap="gray")
     plt.axis("off")
     plt.tight_layout(pad=0)
     uint_img = get_img_from_fig(fig, dpi=dpi, color_cvt_flag=cvt_flag)
     plt.close(fig)
+    if isinteractive:
+        plt.ion()
     return uint_img
 
 
