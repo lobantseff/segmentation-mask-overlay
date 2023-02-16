@@ -46,4 +46,4 @@ fig = overlay_masks(image, masks, labels=mask_labels, colors=cmap, mask_alpha=0.
 fig.savefig("cat_masked.png", bbox_inches="tight", dpi=300)
 ```
 
-![Segmented cat](https://raw.githubusercontent.com/lobantseff/segmentation-mask-overlay/master/segmentation_mask_overlay/examples/cat_masked.jpg)
+![Segmented cat](https://raw.githubusercontent.com/lobantseff/segmentation-mask-overlay/master/examples/cat_masked.jpg)

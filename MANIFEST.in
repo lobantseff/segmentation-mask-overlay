@@ -1,1 +1,2 @@
-include src/segmentation_mask_overlay/examples/*.jpg
+include examples/*.jpg
+include examples/*.py
