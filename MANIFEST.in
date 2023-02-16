@@ -1,1 +1,1 @@
-include segmentation_mask_overlay/examples/*.jpg
+include src/segmentation_mask_overlay/examples/*.jpg

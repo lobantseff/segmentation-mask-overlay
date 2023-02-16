@@ -1,4 +1,5 @@
 #!/bin/bash
-rm -rf build dist segmentation_mask_overlay.egg-info/
-python3 setup.py sdist bdist_wheel
+rm -rf dist src/segmentation_mask_overlay.egg-info
+python -m build
 twine check dist/*
+# twine upload dist/*
