@@ -16,6 +16,7 @@ class LabelColor:
         num_labels: int,
         mpl_colormap: str = "gist_rainbow",
         alpha: float = 0.3,
+        color_mode: str = "rgba",
         mode: str = "uint8",
         return_legend_color: bool = False,
     ):
@@ -36,12 +37,21 @@ class LabelColor:
             If true, getitem retirns tuple of mask color
             and same less opaque legend color.
         """
-
+        
+        assert color_mode in ["rgb", "rgba"]
+        
         self.cmap = colormap.get_cmap(mpl_colormap, num_labels)
         self.alpha = alpha
         self.mode = mode
+        self.color_mode = color_mode
         self.num_labels = num_labels
         self.return_legend_color = return_legend_color
+    
+    def __len__(self):
+        return self.num_labels
+    
+    def __repr__(self):
+        return f"Color bar of {len(self)} colors in {cbar.cmap.name} palitre"
 
     def __getitem__(self, i: int) -> Union[RGBAColor, Tuple[RGBAColor, RGBAColor]]:
         color: RGBAColor
@@ -53,8 +63,10 @@ class LabelColor:
 
         if self.mode == "float":
             color = self.cmap(i, self.alpha)
+            color = color[:-1] if self.color_mode == "rgb" else color
         elif self.mode == "uint8":
             color = np.array(self.cmap(i, self.alpha))
+            color = color[:-1] if self.color_mode == "rgb" else color
             color = tuple(np.array(color * 255, dtype=np.uint8))
         else:
             raise AttributeError("Unsupported mode. Use 'uint8' or 'float'")
@@ -63,43 +75,6 @@ class LabelColor:
             return color, self.get_legend_color(i)
         else:
             return color
-
-    def __len__(self):
-        return self.num_labels
-
-    def __iter__(self):
-        return LabelColorIter(self)
-
-    def get_legend_color(self, i, alpha=0.8):
-        """Return more opaque version of the same color
-        Parameters
-        ----------
-        i : int
-            color index
-        alpha : float, optional
-            Opaque coefficient, by default 0.8
-        Returns
-        -------
-        tuple
-            RGBA color in tuple.
-        """
-
-        return self.cmap(i, alpha)
-
-    @staticmethod
-    def blend(*args: RGBAColor) -> RGBAColor:
-        """Blends colors.
-        Returns
-        -------
-        RGBAColor
-        """
-
-        if isinstance(args[0][0], int):
-            return tuple(np.array(args, dtype="uint16").mean(0).astype("uint8"))
-        else:
-            return tuple(np.array(args).mean(0))
-
-
 class LabelColorIter:
     def __init__(self, label_color: LabelColor) -> None:
         self.label_color = label_color
@@ -116,4 +91,4 @@ class LabelColorIter:
         return color
 
     def __iter__(self):
-        return self
+        return 
