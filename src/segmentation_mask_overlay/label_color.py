@@ -91,4 +91,4 @@ class LabelColorIter:
         return color
 
     def __iter__(self):
-        return 
+        return self
