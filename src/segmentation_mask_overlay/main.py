@@ -2,6 +2,7 @@ import os
 from collections.abc import Iterable
 from typing import Optional, Tuple, Union, List
 
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors as C
@@ -9,26 +10,25 @@ from matplotlib.patches import Patch
 from PIL import Image as PILImage
 
 from .label_color import LabelColor
-from .utils import open_with_PIL
+from .utils import check_convert_image
 
 
 def overlay_masks(
-    image: Union[os.PathLike, PILImage.Image, np.ndarray],
+    image: np.ndarray,
     boolean_masks: Union[np.ndarray, List[np.ndarray]],
     labels: Optional[List[str]] = None,
     colors: Optional[Union[np.ndarray, List[Union[str, List[float]]]]] = None,
     figsize: Tuple[int, int] = (8, 8),
     dpi: int = 90,
     mask_alpha: float = 0.4,
-    mpl_colormap: str = "tab20",
+    mpl_colormap: str = "gist_rainbow",
     return_pil_image: bool = False,
 ):
     """Overlays masks on the image.
     Parameters
     ----------
-    image : Union[str, PIL.Image.Image, np.ndarray]
-        Image path or PIl.Image or numpy array. If image size inconsistent with
-        the masks size, image will be resized.
+    image : np.ndarray
+        Image as a numpy array.
     boolean_masks : List[np.ndarray[bool]]
         List of segmentation masks or numpy array of shape (height, width, n_classes).
         All masks should be the same size, equal to size of the image.
@@ -36,8 +36,8 @@ def overlay_masks(
         Optional label names. Provide in the same order as the corresponding masks.
         If not provided, will be set as range(len(boolean_masks)), by default None
     colors : Union[np.ndarray, List[Union[str, List[float]]]], optional
-        Array of shape (n_labels x 4) or list of matplotlib acceptable colornames.
-        Example to get persistent colormap: `plt.cm.tab20(np.arange(NUM_LABELS))`
+        Array of shape (n_labels x 3) or list of matplotlib acceptable colornames.
+        Example to get persistent colormap: `plt.cm.tab20(np.arange(NUM_LABELS))[..., :-1]`
     figsize : tuple, optional
         Size in inches of the output image, by default (12, 12)
     dpi : int, optional
@@ -70,11 +70,10 @@ def overlay_masks(
     else:
         labels = [f"{_:02d}" for _ in range(len(boolean_masks))]
 
-    pil_image = open_with_PIL(image)
-    image_size = tuple(np.array(pil_image.size)[::-1])
+    image = check_convert_image(image)
 
     assert all(
-        mask.shape == image_size for mask in boolean_masks
+        mask.shape == image.shape[:2] for mask in boolean_masks
     ), "Label mask size is not equal to image size"
 
     if colors is None:
@@ -83,6 +82,7 @@ def overlay_masks(
             alpha=mask_alpha,
             return_legend_color=True,
             mpl_colormap=mpl_colormap,
+            color_mode="rgb"
         )
 
     else:
@@ -98,16 +98,17 @@ def overlay_masks(
         assert colors.ndim == 2 and colors.shape[-1] == 4, (
             "Unsupported color format:"
             + " should be list of matplotlib colorname strings for each mask/mask_channel,"
-            + " list of RGBA arrays or 2-dim numpy array of shape (n_labels x 4)"
+            + " list of RGBA arrays or 2-dim numpy array of shape (n_labels x 3)"
         )
 
         mask_colors = colors.copy()
-        mask_colors[:, -1] *= mask_alpha
+        # mask_colors[:, -1] *= mask_alpha
         mask_colors = (mask_colors * 255).astype("uint8")
         cbar = zip(mask_colors, colors)
 
-    segmentation_overlay = np.zeros((*image_size, 4), dtype=np.uint16)
-    segmentation_mask = np.zeros(image_size, dtype=bool)
+    # segmentation_overlay = np.zeros((*image_size, 4), dtype=np.uint16)
+    segmentation_overlay = np.zeros_like(image, dtype=np.uint16)
+    segmentation_mask = np.zeros(image.shape[:2], dtype=bool)
     legend_elements = []
 
     for mask, label, (color, legend_color) in zip(boolean_masks, labels, cbar):
@@ -127,13 +128,17 @@ def overlay_masks(
 
         legend_elements.append(Patch(color=legend_color, label=label))
 
-    segmentation_overlay = PILImage.fromarray(segmentation_overlay.astype("uint8"))
-    pil_image.paste(segmentation_overlay, mask=segmentation_overlay)
+    segmentation_overlay = segmentation_overlay.astype("uint8")
+    overlayed = cv2.addWeighted(image, 1, segmentation_overlay, mask_alpha, 0)
+
+    image = np.concatenate((image, overlayed), 1)
 
     if return_pil_image:
+        pil_image = PILImage.fromarray(image)
         return pil_image
-    
+
     else:
+        pil_image = PILImage.fromarray(image)
         fig = plt.figure(figsize=figsize, dpi=dpi)
         plt.imshow(pil_image)
         plt.axis("off")

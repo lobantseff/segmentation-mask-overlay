@@ -89,10 +89,19 @@ def open_with_PIL(
         pil_image = image.convert("RGB")
     elif isinstance(image, np.ndarray):
         image = image.squeeze()
-        assert image.ndim == 2, "Supported only grayscale numpy arrays"
-        image_array = array_to_uintimage(image)
         pil_image = PILImage.fromarray(image_array).convert("RGB")
         pil_image = pil_image.resize(image.shape[::-1])
     else:
         raise AttributeError("Unsupported type of image input")
     return pil_image
+
+
+def check_convert_image(image: np.ndarray) -> np.ndarray:
+    image = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+
+    if image.ndim == 3:
+        assert image.shape[-1] == 3, "Expected uint8 numpy array of shape H W 3."
+    elif image.ndim == 2:
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    
+    return image

@@ -47,6 +47,7 @@ class LabelColor:
         self.color_mode = color_mode
         self.num_labels = num_labels
         self.return_legend_color = return_legend_color
+        # self.colors = self.cmap(np.arange(self.num_labels))
 
     def __len__(self):
         return self.num_labels
