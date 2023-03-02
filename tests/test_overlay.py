@@ -36,11 +36,11 @@ def catchtime(arg: str = "", logger: Optional[logging.Logger] = None) -> float:
 image = Image.open("./examples/cat.jpg").convert("RGB")
 image = np.array(image)
 
-image = np.random.randint(0, 1024, (256, 256)) * 255
+image = np.random.randint(0, 1024, (512, 512)) * 255
 
 # [Example] Mimic list of masks
 masks = []
-for i in np.linspace(0, image.shape[1], 6, dtype="int"):
+for i in np.linspace(0, image.shape[1], 10, dtype="int"):
     mask = np.zeros(image.shape[:2], dtype="bool")
     mask[i : i + 100, i : i + 200] = 1
     masks.append(mask)
