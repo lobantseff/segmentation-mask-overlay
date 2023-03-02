@@ -23,7 +23,7 @@ from PIL import Image
 from segmentation_mask_overlay import overlay_masks
 
 # [Example] Load image. If you are sure of you masks
-image = Image.open("cat.jpg").convert("L")
+image = Image.open("cat.jpg")
 image = np.array(image)
 
 # [Example] Mimic list of masks
@@ -37,10 +37,10 @@ for i in np.linspace(0, image.shape[1], 10, dtype="int"):
 mask_labels = [f"Mask_{i}" for i in range(len(masks))]
 
 # [Optional] prepare colors
-cmap = plt.cm.tab20(np.arange(len(mask_labels)))
+cmap = plt.cm.tab20(np.arange(len(mask_labels)))[..., :-1]
 
 # Laminate your image!
-fig = overlay_masks(image, masks, labels=mask_labels, colors=cmap, mask_alpha=0.5)
+fig = array = overlay_masks(image, np.stack(masks, -1), mask_labels, return_type="mpl")
 
 # Do with that image whatever you want to do.
 fig.savefig("cat_masked.png", bbox_inches="tight", dpi=300)
