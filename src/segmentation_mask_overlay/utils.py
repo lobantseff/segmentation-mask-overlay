@@ -7,13 +7,13 @@ import cv2
 import numpy as np
 
 
-def check_convert_image(image: np.ndarray, input_format: str = "HWC") -> np.ndarray:
-    if input_format == "HWC":
+def check_convert_image(image: np.ndarray, input_dims: str = "HWC") -> np.ndarray:
+    if input_dims == "HWC":
         ch_dim = -1
-    elif input_format == "CHW":
+    elif input_dims == "CHW":
         ch_dim = -3
     else:
-        raise AssertionError("input_format should be HWC | CHW")
+        raise AssertionError("input_dims should be HWC | CHW")
 
     if (
         image.dtype == np.uint8
@@ -30,7 +30,7 @@ def check_convert_image(image: np.ndarray, input_format: str = "HWC") -> np.ndar
         return cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
 
     elif image.ndim == 3:
-        if input_format == "CHW":
+        if input_dims == "CHW":
             image = image.transpose(1, 2, 0)
         assert image.shape[-1] in [1, 3, 4], "Expected uint8 numpy array of shape HW1, HW3, HW4."
         if image.shape[-1] == 1:
@@ -44,16 +44,39 @@ def check_convert_image(image: np.ndarray, input_format: str = "HWC") -> np.ndar
         raise AssertionError("Expected numpy array of shape HW, HW1, HW3, HW4.")
 
 
-def check_convert_mask(mask: np.ndarray, num_classes: int) -> np.ndarray:
-    assertion_message = "The mask is expected to be an HW array with integer per class or HWC with bool mask per channel"
+def check_convert_mask(
+    mask: np.ndarray, num_classes: Optional[int] = None, input_dims: str = "HWC"
+) -> np.ndarray:
+    """Checks and converts mask to HWC format if needed.
+
+    Parameters
+    ----------
+    mask : np.ndarray
+        Segmenttaion mask HWC, with binary channel per class
+    num_classes : Optional[int], optional
+        You may provide this to infer correct number of channels if mask 
+        is provided in HW format. By default number of channels inferred
+        as max(mask) + 1, by default None
+    
+    Returns
+    -------
+    np.ndarray (bool)
+        CHW boolean mask array
+    """
+
+    assert_message = "The mask is expected to be an HW array with integer per class or HWC with bool mask per channel"
     mask = mask.astype(np.uint8)
     if mask.ndim == 3:
-        assert mask.max() == 1, assertion_message
-        assert mask.shape[-1] == num_classes, "Num mask channels should be equal to len(labels)"
+        assert mask.min() >= 0 and mask.max() <= 1, assert_message + f"mask.max: {mask.max()}; max.min: {mask.min()}"
+        input_dims = "CHW" if mask.shape[0] < mask.shape[1] and mask.shape[0] < mask.shape[2] else "HWC"
+        if input_dims == "CHW":
+            mask = mask.transpose(1, 2, 0)
     elif mask.ndim == 2:
+        if num_classes is None:
+            num_classes = np.max(mask) + 1
         mask = np.eye(num_classes)[mask]  # One-hot encoded array
     else:
-        raise AssertionError(assertion_message)
+        raise AssertionError(assert_message)
     return mask.astype(bool)
 
 

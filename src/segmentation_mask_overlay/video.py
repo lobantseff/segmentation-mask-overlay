@@ -59,7 +59,7 @@ def make_video(
     video_frames = []
     for im, *masks in zip(im_sequence, *mask_sequences):
 
-        im = check_convert_image(im, input_format=array_dims[1:])
+        im = check_convert_image(im, input_dims=array_dims[1:])
 
         masks_im = []
         if len(masks) > 0:
