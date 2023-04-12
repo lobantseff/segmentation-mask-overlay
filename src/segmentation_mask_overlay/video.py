@@ -26,8 +26,13 @@ def overlay_masks_video(
     savepath: str "path/to/video.mp4"
     im_sequence : np.ndarray of shape THW or THWC
     mask_sequences : numpy arrays of shape THWC of dtype bool
+    output: str | Path
+        if output == 'numpy' output is a numpy array. If Path, an mp4 file
+        will be saved there, default: 'numpy'
+    array_dims: str, 
+        THWC | TCHW, default: THWC
     fps: int
-    array_dims: str, THWC | TCHW
+        default: 15
 
     Returns
     -------

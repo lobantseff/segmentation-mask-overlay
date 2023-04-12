@@ -7,6 +7,10 @@ import cv2
 import numpy as np
 
 
+def normalize_to_uint8(array: np.ndarray):
+    return (array * 255 / (array.max() + 1e-6)).round().astype(np.uint8)
+
+
 def check_convert_image(image: np.ndarray, input_dims: str = "HWC") -> np.ndarray:
     if input_dims == "HWC":
         ch_dim = -1
@@ -19,12 +23,10 @@ def check_convert_image(image: np.ndarray, input_dims: str = "HWC") -> np.ndarra
         image.dtype == np.uint8
         and image.max() <= 255
         and image.min() >= 0
-        and image.ndim == 3
-        and image.shape[ch_dim] == 3
     ):
-        return image
-
-    image = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        pass
+    else:
+        image = normalize_to_uint8(image)
 
     if image.ndim == 2:
         return cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
