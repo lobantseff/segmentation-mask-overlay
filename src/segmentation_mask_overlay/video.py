@@ -11,7 +11,7 @@ from segmentation_mask_overlay.utils import check_convert_image
 
 Pathlike = Union[str, Path]
 
-def make_video(
+def overlay_masks_video(
     im_sequence: np.ndarray,
     *mask_sequences: np.ndarray,
     output: Union[str, Path] = "numpy",
@@ -120,4 +120,4 @@ if __name__ == "__main__":
     mask1[:, 2, 130:180, 130:180] = 1
     mask2 = np.random.randint(0, 2, (64, 4, 512, 512))
     with catchtime("masking video"):
-        make_video(run, mask1, mask2, array_dims="TCHW")
+        overlay_masks_video(run, mask1, mask2, array_dims="TCHW")
