@@ -50,11 +50,13 @@ def overlay_masks_video(
     else:
         raise AssertionError("array_dims should be THWC | TCHW")
 
+    # Check array length consistency between image and masks.
     if len(mask_sequences) > 0:
         assert all(
             [im_sequence.shape[0] == m.shape[0] for m in mask_sequences]
         ), "Sequence and masks have different size T"
 
+    # Set colormaps: 'tab10' if n_classes <=10, 'rainbow' otherwise
     mask_cmaps = []
     for mseq in mask_sequences:
         num_classes = mseq.shape[ch_dim]
@@ -63,15 +65,21 @@ def overlay_masks_video(
         else:
             mask_cmaps.append(plt.cm.rainbow_r(np.linspace(0, 1, num_classes), bytes=True)[:, :-1][:, ::-1])
 
+    # Iterate through: frame, (frame_mask0, frame_mask1, ...)
     video_frames = []
     for im, *masks in zip(im_sequence, *mask_sequences):
 
+        # Normalize, cast to uint8, convert to RGB
         im = check_convert_image(im, input_dims=array_dims[1:])
 
+        # 
         masks_im = []
         if len(masks) > 0:
+            # Prepare image for each mask
             masks_im = [np.copy(im) for _ in range(len(masks))]
+            # Segmentation canvas to fuse-in the colored masks (uint16)
             segmentation_overlay_list = [np.zeros_like(im, dtype=np.uint16) for _ in range(len(masks))]
+            # Segmentation masks (bool)
             segmentation_mask_list = [np.zeros(im.shape[:2], dtype=bool) for _ in range(len(masks))]
 
             # Inpaint masks into masks_im
@@ -82,10 +90,12 @@ def overlay_masks_video(
                 segmentation_overlay = segmentation_overlay_list[i]
                 segmentation_mask = segmentation_mask_list[i]
 
+                # Iterate through channel dim to get mask per class
                 for class_idx in range(mask.shape[ch_dim]):
                     color = mask_colormap[class_idx]
                     class_mask = mask.take(class_idx, ch_dim)
 
+                    # Get areas of intersection of the current mask and previous masks.
                     intersection = class_mask & segmentation_mask
                     segmentation_mask = class_mask | segmentation_mask
 
@@ -129,4 +139,5 @@ if __name__ == "__main__":
     mask1[:, 2, 130:180, 130:180] = 1
     mask2 = np.random.randint(0, 2, (64, 4, 512, 512))
     with catchtime("masking video"):
-        overlay_masks_video(run, mask1, mask2, array_dims="TCHW")
+        video = overlay_masks_video(run, array_dims="TCHW")
+        print(video.shape)
