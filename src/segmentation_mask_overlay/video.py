@@ -17,6 +17,8 @@ def overlay_masks_video(
     output: Union[str, Path] = "numpy",
     array_dims: str = "THWC",
     fps: int = 15,
+    image_weight: float = 1.0,
+    mask_weight: float = 0.5,
 
 ):
     """Create videos out of sequences of images and masks.
@@ -93,7 +95,9 @@ def overlay_masks_video(
                     # Blend overlapping area
                     segmentation_overlay[intersection] = (segmentation_overlay[intersection] + color) // 2
 
-                masks_im[i] = cv2.addWeighted(mask_im, 1, segmentation_overlay.astype(np.uint8), 0.5, 0)
+                masks_im[i] = cv2.addWeighted(
+                    mask_im, image_weight, segmentation_overlay.astype(np.uint8), mask_weight, 0
+                )
 
         frame = np.concatenate((im, *masks_im), 1)
         video_frames.append(frame)
