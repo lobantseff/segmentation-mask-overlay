@@ -8,7 +8,11 @@ import numpy as np
 
 
 def normalize_to_uint8(array: np.ndarray):
-    return (array * 255 / (array.max() + 1e-6)).round().astype(np.uint8)
+    if array.max() == array.min():
+        array = (array * 255 / array.max() + 1e-6)
+    else:
+        array = 255 * (array - array.min()) / (array.max() - array.min() + 1e-6)
+    return array.round().astype(np.uint8)
 
 
 def check_convert_image(image: np.ndarray, input_dims: str = "HWC") -> np.ndarray:
