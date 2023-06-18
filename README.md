@@ -22,7 +22,7 @@ import numpy as np
 from PIL import Image
 from segmentation_mask_overlay import overlay_masks
 
-# [Example] Load image. If you are sure of you masks
+# [Example] Load image
 image = Image.open("cat.jpg").convert("L")
 image = np.array(image)
 
