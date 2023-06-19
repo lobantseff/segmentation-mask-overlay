@@ -9,7 +9,8 @@ from segmentation_mask_overlay.utils import catchtime
 from segmentation_mask_overlay.utils import check_convert_image
 
 
-Pathlike = Union[str, Path]
+Pathlike = Union[str, bytes, Path]
+
 
 def overlay_masks_video(
     im_sequence: np.ndarray,
@@ -72,7 +73,6 @@ def overlay_masks_video(
         # Normalize, cast to uint8, convert to RGB
         im = check_convert_image(im, input_dims=array_dims[1:])
 
-        # 
         masks_im = []
         if len(masks) > 0:
             # Prepare image for each mask
@@ -123,7 +123,7 @@ def overlay_masks_video(
         for frame in video_frames:
             out.write(frame)
         out.release()
-    
+
     elif output == "numpy":
         video_frames = np.array(video_frames)
         if array_dims == "TCHW":
@@ -134,6 +134,7 @@ def overlay_masks_video(
 def overlay_points_video(
     im_sequence: np.ndarray,
     *pts_sequences: np.ndarray,
+    sizes: list[int] = None,
     output: Union[str, Path] = "numpy",
     array_dims: str = "THWC",
     fps: int = 15,
@@ -184,7 +185,6 @@ def overlay_points_video(
         # Normalize, cast to uint8, convert to RGB
         im = check_convert_image(im, input_dims=array_dims[1:])
 
-        # 
         pts_im = []
         if len(pts) > 0:
             # Prepare image for each mask
@@ -195,9 +195,10 @@ def overlay_points_video(
                 points = pts[i]
                 points_im = pts_im[i].copy()
                 points_color = pts_cmaps[i]
+                s = sizes[i]
 
                 for x, y in points:
-                    pts_im[i] = cv2.circle(points_im, (x, y), 1, points_color.tolist(), -1, cv2.LINE_AA)
+                    pts_im[i] = cv2.circle(points_im, (y, x), s, points_color.tolist(), -1, cv2.LINE_AA)
 
         frame = np.concatenate((im, *pts_im), 1)
         video_frames.append(frame)
