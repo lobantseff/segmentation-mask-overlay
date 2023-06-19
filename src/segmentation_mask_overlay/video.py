@@ -134,7 +134,7 @@ def overlay_masks_video(
 def overlay_points_video(
     im_sequence: np.ndarray,
     *pts_sequences: np.ndarray,
-    sizes: list[int] = None,
+    sizes: int | list[int] = 5,
     output: Union[str, Path] = "numpy",
     array_dims: str = "THWC",
     fps: int = 15,
@@ -167,7 +167,7 @@ def overlay_points_video(
     # Check array length consistency between image and masks.
     if len(pts_sequences) > 0:
         assert all(
-            [im_sequence.shape[0] == p.shape[0] for p in pts_sequences]
+            [im_sequence.shape[0] == len(p) for p in pts_sequences]
         ), "Sequence and masks have different size T"
 
     # Set colormaps: 'tab10' if n_classes <=10, 'rainbow' otherwise
@@ -182,6 +182,9 @@ def overlay_points_video(
     video_frames = []
     for im, *pts in zip(im_sequence, *pts_sequences):
 
+        if isinstance(sizes, list):
+            assert len(pts) == len(sizes), "Provide the sizes for all the point arrays"
+
         # Normalize, cast to uint8, convert to RGB
         im = check_convert_image(im, input_dims=array_dims[1:])
 
@@ -195,7 +198,7 @@ def overlay_points_video(
                 points = pts[i]
                 points_im = pts_im[i].copy()
                 points_color = pts_cmaps[i]
-                s = sizes[i]
+                s = sizes[i] if isinstance(sizes, list) else sizes
 
                 for x, y in points:
                     pts_im[i] = cv2.circle(points_im, (y, x), s, points_color.tolist(), -1, cv2.LINE_AA)
@@ -214,7 +217,7 @@ def overlay_points_video(
         for frame in video_frames:
             out.write(frame)
         out.release()
-    
+
     elif output == "numpy":
         video_frames = np.array(video_frames)
         if array_dims == "TCHW":
@@ -236,7 +239,7 @@ if __name__ == "__main__":
     pts1 = np.repeat(pts1[None], 64, 0)
     pts2 = np.array([np.arange(0, 512), np.arange(0, 512)]).T
     pts2 = np.repeat(pts2[None], 64, 0)
-    pts3 = np.random.randint(0, 512, (64, 128, 2))
+    pts3 = [np.random.randint(0, 512, (np.random.randint(0, 256), 2)) for _ in range(64)]
     with catchtime("masking video"):
         video = overlay_points_video(run, pts1, pts2, pts3, array_dims="TCHW", output="video.mp4")
         # print(video.shape)
