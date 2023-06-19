@@ -201,6 +201,7 @@ def overlay_points_video(
                 s = sizes[i] if isinstance(sizes, list) else sizes
 
                 for x, y in points:
+                    x, y = round(x), round(y)
                     pts_im[i] = cv2.circle(points_im, (y, x), s, points_color.tolist(), -1, cv2.LINE_AA)
 
         frame = np.concatenate((im, *pts_im), 1)
