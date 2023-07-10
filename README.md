@@ -47,3 +47,8 @@ fig.savefig("cat_masked.png", bbox_inches="tight", dpi=300)
 ```
 
 ![Segmented cat](https://raw.githubusercontent.com/lobantseff/segmentation-mask-overlay/master/examples/cat_masked.jpg)
+
+## CHANGELOG
+* **v0.4.4**:
+    - Dropped mandatory label arg in `overlay_masks()`
+    - Added one-channel binary masks handling in `overlay_masks()`

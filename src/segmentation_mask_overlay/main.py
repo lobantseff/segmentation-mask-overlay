@@ -14,7 +14,7 @@ from segmentation_mask_overlay.utils import check_convert_image, check_convert_m
 def overlay_masks(
     image: np.ndarray,
     masks: np.ndarray,
-    labels: List[str],
+    labels: Optional[List[str]] = None,
     colors: Optional[Union[np.ndarray, List[Union[str, List[float]]]]] = None,
     alpha: float = 1.0,
     beta: float = 0.5,
@@ -36,7 +36,7 @@ def overlay_masks(
         - H W, with an pixel integer value representing a class.
     labels : Optional[List[str]], optional
         Names of expected labels. Provide in the same order as the channels in the masks.
-        If provided, defines 
+        If provided, defines
         If not provided, will be set as range(mask.shape[-1] | max(mask) + 1), by default None
     colors : Union[np.ndarray, List[Union[str, List[float]]]], optional
         Array of shape (n_labels x 3) or list of matplotlib acceptable colornames.
@@ -66,6 +66,12 @@ def overlay_masks(
     """
 
     assert image.shape[:2] == masks.shape[:2], "Image and mask should be of the same size"
+
+    if masks.ndim == 2:
+        masks = masks[..., None]
+
+    if labels is None:
+        labels = list(range(masks.shape[-1]))
 
     num_classes = len(labels)
 

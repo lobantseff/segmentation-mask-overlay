@@ -16,18 +16,10 @@ def normalize_to_uint8(array: np.ndarray):
 
 
 def check_convert_image(image: np.ndarray, input_dims: str = "HWC") -> np.ndarray:
-    if input_dims == "HWC":
-        ch_dim = -1
-    elif input_dims == "CHW":
-        ch_dim = -3
-    else:
+    if input_dims not in ["HWC", "CHW"]:
         raise AssertionError("input_dims should be HWC | CHW")
 
-    if (
-        image.dtype == np.uint8
-        and image.max() <= 255
-        and image.min() >= 0
-    ):
+    if image.dtype == np.uint8 and image.max() <= 255 and image.min() >= 0:
         pass
     else:
         image = normalize_to_uint8(image)
@@ -50,9 +42,7 @@ def check_convert_image(image: np.ndarray, input_dims: str = "HWC") -> np.ndarra
         raise AssertionError("Expected numpy array of shape HW, HW1, HW3, HW4.")
 
 
-def check_convert_mask(
-    mask: np.ndarray, num_classes: Optional[int] = None, input_dims: str = "HWC"
-) -> np.ndarray:
+def check_convert_mask(mask: np.ndarray, num_classes: Optional[int] = None, input_dims: str = "HWC") -> np.ndarray:
     """Checks and converts mask to HWC format if needed.
 
     Parameters
@@ -60,10 +50,10 @@ def check_convert_mask(
     mask : np.ndarray
         Segmenttaion mask HWC, with binary channel per class
     num_classes : Optional[int], optional
-        You may provide this to infer correct number of channels if mask 
+        You may provide this to infer correct number of channels if mask
         is provided in HW format. By default number of channels inferred
         as max(mask) + 1, by default None
-    
+
     Returns
     -------
     np.ndarray (bool)
@@ -101,7 +91,7 @@ def catchtime(arg: str = "", logger: Optional[logging.Logger] = None) -> float:
     >>>     time.sleep(1)
     >>> print(f"Execution time: {t():.4f} secs")
     """
-    
+
     start = time.perf_counter()
     yield
     if logger is not None:

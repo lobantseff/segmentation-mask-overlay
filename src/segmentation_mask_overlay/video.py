@@ -20,7 +20,6 @@ def overlay_masks_video(
     fps: int = 15,
     image_weight: float = 1.0,
     mask_weight: float = 0.5,
-
 ):
     """Create videos out of sequences of images and masks.
 
@@ -32,7 +31,7 @@ def overlay_masks_video(
     output: str | Path
         if output == 'numpy' output is a numpy array. If Path, an mp4 file
         will be saved there, default: 'numpy'
-    array_dims: str, 
+    array_dims: str,
         THWC | TCHW, default: THWC
     fps: int
         default: 15
@@ -69,7 +68,6 @@ def overlay_masks_video(
     # Iterate through: frame, (frame_mask0, frame_mask1, ...)
     video_frames = []
     for im, *masks in zip(im_sequence, *mask_sequences):
-
         # Normalize, cast to uint8, convert to RGB
         im = check_convert_image(im, input_dims=array_dims[1:])
 
@@ -149,7 +147,7 @@ def overlay_points_video(
     output: str | Path
         if output == 'numpy' output is a numpy array. If Path, an mp4 file
         will be saved there, default: 'numpy'
-    array_dims: str, 
+    array_dims: str,
         THWC | TCHW, default: THWC
     fps: int
         default: 15
@@ -166,9 +164,7 @@ def overlay_points_video(
 
     # Check array length consistency between image and masks.
     if len(pts_sequences) > 0:
-        assert all(
-            [im_sequence.shape[0] == len(p) for p in pts_sequences]
-        ), "Sequence and masks have different size T"
+        assert all([im_sequence.shape[0] == len(p) for p in pts_sequences]), "Sequence and masks have different size T"
 
     # Set colormaps: 'tab10' if n_classes <=10, 'rainbow' otherwise
     pts_cmaps = []
@@ -181,7 +177,6 @@ def overlay_points_video(
     # Iterate through: frame, (frame_mask0, frame_mask1, ...)
     video_frames = []
     for im, *pts in zip(im_sequence, *pts_sequences):
-
         if isinstance(sizes, list):
             assert len(pts) == len(sizes), "Provide the sizes for all the point arrays"
 
